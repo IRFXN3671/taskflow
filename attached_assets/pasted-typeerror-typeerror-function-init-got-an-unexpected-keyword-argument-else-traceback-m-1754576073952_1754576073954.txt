@@ -1,0 +1,42 @@
+TypeError
+TypeError: Function.__init__() got an unexpected keyword argument 'else_'
+
+Traceback (most recent call last)
+File "D:\Programming\task_tracker\venv\Lib\site-packages\flask\app.py", line 1536, in __call__
+return self.wsgi_app(environ, start_response)
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "D:\Programming\task_tracker\venv\Lib\site-packages\werkzeug\middleware\proxy_fix.py", line 183, in __call__
+return self.app(environ, start_response)
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "D:\Programming\task_tracker\venv\Lib\site-packages\flask\app.py", line 1514, in wsgi_app
+response = self.handle_exception(e)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+File "D:\Programming\task_tracker\venv\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+response = self.full_dispatch_request()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "D:\Programming\task_tracker\venv\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+rv = self.handle_user_exception(e)
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "D:\Programming\task_tracker\venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+rv = self.dispatch_request()
+     ^^^^^^^^^^^^^^^^^^^^^^^
+File "D:\Programming\task_tracker\venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "D:\Programming\task_tracker\routes.py", line 26, in decorated_function
+return f(*args, **kwargs)
+       ^^^^^^^^^^^^^^^^^^
+File "D:\Programming\task_tracker\routes.py", line 91, in dashboard
+func.sum(func.case((Task.status == 'completed', 1), else_=0)).label('completed_tasks')
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "D:\Programming\task_tracker\venv\Lib\site-packages\sqlalchemy\sql\functions.py", line 978, in __call__
+return Function(
+       
+TypeError: Function.__init__() got an unexpected keyword argument 'else_'
+The debugger caught an exception in your WSGI application. You can now look at the traceback which led to the error.
+To switch between the interactive traceback and the plaintext one, you can click on the "Traceback" headline. From the text traceback you can also create a paste of it. For code execution mouse-over the frame you want to debug and click on the console icon on the right side.
+
+You can execute arbitrary Python code in the stack frames and there are some extra helpers available for introspection:
+
+dump() shows all variables in the frame
+dump(obj) dumps all that's known about the object

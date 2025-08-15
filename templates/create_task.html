@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Create Task - Task Tracker{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Create New Task</h1>
+    <a href="{{ url_for('tasks') }}" class="btn btn-outline-secondary">
+        <i data-feather="arrow-left"></i> Back to Tasks
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Task Title *</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="assignee_id" class="form-label">Assign To *</label>
+                                <select class="form-select" id="assignee_id" name="assignee_id" required>
+                                    <option value="">Select an employee...</option>
+                                    {% for employee in employees %}
+                                    <option value="{{ employee.id }}">
+                                        {{ employee.full_name }} ({{ employee.department or 'No Department' }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="priority" class="form-label">Priority</label>
+                                <select class="form-select" id="priority" name="priority">
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="due_date" class="form-label">Due Date</label>
+                                <input type="date" class="form-control" id="due_date" name="due_date">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="estimated_hours" class="form-label">Estimated Hours</label>
+                                <input type="number" class="form-control" id="estimated_hours" name="estimated_hours" step="0.5" min="0">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="category" class="form-label">Category</label>
+                                <input type="text" class="form-control" id="category" name="category" placeholder="e.g., Development, Testing, Design">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="tags" class="form-label">Tags</label>
+                                <input type="text" class="form-control" id="tags" name="tags" placeholder="e.g., urgent, client-facing, bug-fix">
+                                <small class="form-text text-muted">Separate multiple tags with commas</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i data-feather="info"></i> Task Guidelines
+                            </h6>
+                            
+                            <div class="mb-3">
+                                <strong>Title:</strong>
+                                <ul class="small mt-1 mb-0">
+                                    <li>Use clear, descriptive titles</li>
+                                    <li>Include action words (Create, Fix, Update)</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong>Priority Levels:</strong>
+                                <ul class="small mt-1 mb-0">
+                                    <li><span class="badge bg-success">Low</span> - Nice to have</li>
+                                    <li><span class="badge bg-warning">Medium</span> - Important</li>
+                                    <li><span class="badge bg-danger">High</span> - Critical/Urgent</li>
+                                </ul>
+                            </div>
+                            
+                            <div>
+                                <strong>Best Practices:</strong>
+                                <ul class="small mt-1 mb-0">
+                                    <li>Set realistic due dates</li>
+                                    <li>Provide detailed descriptions</li>
+                                    <li>Use categories to group related tasks</li>
+                                    <li>Add relevant tags for easy filtering</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('tasks') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i data-feather="save"></i> Create Task
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Set minimum date to today
+    document.getElementById('due_date').min = new Date().toISOString().split('T')[0];
+    
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const title = document.getElementById('title').value.trim();
+        const assignee = document.getElementById('assignee_id').value;
+        
+        if (!title) {
+            e.preventDefault();
+            alert('Please enter a task title.');
+            document.getElementById('title').focus();
+            return;
+        }
+        
+        if (!assignee) {
+            e.preventDefault();
+            alert('Please select an assignee.');
+            document.getElementById('assignee_id').focus();
+            return;
+        }
+    });
+</script>
+{% endblock %}

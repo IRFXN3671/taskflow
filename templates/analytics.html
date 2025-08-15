@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Task Tracker{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Analytics & Reports</h1>
+    <div>
+        <button class="btn btn-outline-primary" onclick="window.print()">
+            <i data-feather="printer"></i> Print Report
+        </button>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i data-feather="trending-up" class="text-success mb-2"></i>
+                <h3 class="card-title">{{ completion_data|length }}</h3>
+                <p class="card-text text-muted">Days with Completions</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i data-feather="users" class="text-info mb-2"></i>
+                <h3 class="card-title">{{ productivity_data|length }}</h3>
+                <p class="card-text text-muted">Active Team Members</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i data-feather="check-circle" class="text-success mb-2"></i>
+                <h3 class="card-title">
+                    {% set total_completed = completion_data|sum(attribute=1) if completion_data else 0 %}
+                    {{ total_completed }}
+                </h3>
+                <p class="card-text text-muted">Tasks Completed (30d)</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i data-feather="clock" class="text-warning mb-2"></i>
+                <h3 class="card-title">
+                    {% if productivity_data %}
+                        {% set avg_time = productivity_data|selectattr(2)|map(attribute=2)|list|sum / (productivity_data|selectattr(2)|list|length or 1) %}
+                        {{ "%.1f"|format(avg_time) }}h
+                    {% else %}
+                        0h
+                    {% endif %}
+                </h3>
+                <p class="card-text text-muted">Avg Completion Time</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Task Completion Trend -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i data-feather="line-chart"></i> Task Completion Trend (Last 30 Days)
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="completionTrendChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Priority Distribution -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i data-feather="pie-chart"></i> Priority Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="priorityChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Status Distribution -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i data-feather="bar-chart"></i> Status Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Team Productivity -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i data-feather="users"></i> Team Productivity
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="productivityChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Team Performance Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i data-feather="table"></i> Detailed Team Performance
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if productivity_data %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Total Tasks</th>
+                                <th>Completed Tasks</th>
+                                <th>Completion Rate</th>
+                                <th>Avg Completion Time</th>
+                                <th>Performance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for employee in productivity_data %}
+                            {% set completion_rate = (employee[2] / employee[1] * 100) if employee[1] > 0 else 0 %}
+                            <tr>
+                                <td>{{ employee[0] }} {{ employee[1] }}</td>
+                                <td>{{ employee[2] }}</td>
+                                <td>{{ employee[3] }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress me-2" style="width: 100px; height: 8px;">
+                                            <div class="progress-bar" style="width: {{ completion_rate }}%"></div>
+                                        </div>
+                                        {{ "%.1f"|format(completion_rate) }}%
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if employee[4] %}
+                                        {{ "%.1f"|format(employee[4]) }} hours
+                                    {% else %}
+                                        <span class="text-muted">No data</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if completion_rate >= 80 %}
+                                        <span class="badge bg-success">Excellent</span>
+                                    {% elif completion_rate >= 60 %}
+                                        <span class="badge bg-info">Good</span>
+                                    {% elif completion_rate >= 40 %}
+                                        <span class="badge bg-warning">Average</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Needs Improvement</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i data-feather="bar-chart" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
+                    <p class="text-muted">No productivity data available yet.</p>
+                    <p class="text-muted">Create and assign tasks to start seeing analytics.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Task Completion Trend Chart
+        const completionTrendCtx = document.getElementById('completionTrendChart').getContext('2d');
+        const completionDates = [{% for item in completion_data %}'{{ item[0] }}'{% if not loop.last %},{% endif %}{% endfor %}];
+        const completionCounts = [{% for item in completion_data %}{{ item[1] }}{% if not loop.last %},{% endif %}{% endfor %}];
+        
+        new Chart(completionTrendCtx, {
+            type: 'line',
+            data: {
+                labels: completionDates,
+                datasets: [{
+                    label: 'Tasks Completed',
+                    data: completionCounts,
+                    borderColor: '#198754',
+                    backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+        
+        // Priority Distribution Chart
+        const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+        new Chart(priorityCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [{% for item in priority_data %}'{{ item[0].title() }}'{% if not loop.last %},{% endif %}{% endfor %}],
+                datasets: [{
+                    data: [{% for item in priority_data %}{{ item[1] }}{% if not loop.last %},{% endif %}{% endfor %}],
+                    backgroundColor: ['#198754', '#ffc107', '#dc3545']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        
+        // Status Distribution Chart
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'bar',
+            data: {
+                labels: [{% for item in status_data %}'{{ item[0].replace("_", " ").title() }}'{% if not loop.last %},{% endif %}{% endfor %}],
+                datasets: [{
+                    label: 'Tasks',
+                    data: [{% for item in status_data %}{{ item[1] }}{% if not loop.last %},{% endif %}{% endfor %}],
+                    backgroundColor: ['#ffc107', '#0dcaf0', '#198754']
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+        
+        // Team Productivity Chart
+        const productivityCtx = document.getElementById('productivityChart').getContext('2d');
+        new Chart(productivityCtx, {
+            type: 'bar',
+            data: {
+                labels: [{% for item in productivity_data %}'{{ item[0] }} {{ item[1] }}'{% if not loop.last %},{% endif %}{% endfor %}],
+                datasets: [{
+                    label: 'Total Tasks',
+                    data: [{% for item in productivity_data %}{{ item[2] }}{% if not loop.last %},{% endif %}{% endfor %}],
+                    backgroundColor: '#0dcaf0'
+                }, {
+                    label: 'Completed Tasks',
+                    data: [{% for item in productivity_data %}{{ item[3] }}{% if not loop.last %},{% endif %}{% endfor %}],
+                    backgroundColor: '#198754'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

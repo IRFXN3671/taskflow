@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Task Tracker{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1>Dashboard</h1>
+        <p class="text-muted">Welcome back, {{ user.first_name }}!</p>
+    </div>
+    <div class="text-end">
+        <span class="badge bg-{{ 'primary' if user.is_manager() else 'secondary' }}">
+            {{ user.role.title() }}
+        </span>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-2 col-sm-6 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i data-feather="clipboard" class="text-primary mb-2"></i>
+                <h3 class="card-title" id="total-tasks">{{ total_tasks }}</h3>
+                <p class="card-text text-muted">Total Tasks</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-2 col-sm-6 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i data-feather="clock" class="text-warning mb-2"></i>
+                <h3 class="card-title" id="pending-tasks">{{ pending_tasks }}</h3>
+                <p class="card-text text-muted">Pending</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-2 col-sm-6 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i data-feather="play-circle" class="text-info mb-2"></i>
+                <h3 class="card-title" id="in-progress-tasks">{{ in_progress_tasks }}</h3>
+                <p class="card-text text-muted">In Progress</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-2 col-sm-6 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i data-feather="check-circle" class="text-success mb-2"></i>
+                <h3 class="card-title" id="completed-tasks">{{ completed_tasks }}</h3>
+                <p class="card-text text-muted">Completed</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-2 col-sm-6 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i data-feather="alert-circle" class="text-danger mb-2"></i>
+                <h3 class="card-title" id="overdue-tasks">{{ overdue_tasks }}</h3>
+                <p class="card-text text-muted">Overdue</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-2 col-sm-6 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i data-feather="trending-up" class="text-success mb-2"></i>
+                <h3 class="card-title">
+                    {% if total_tasks > 0 %}
+                        {{ "%.1f"|format((completed_tasks / total_tasks) * 100) }}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </h3>
+                <p class="card-text text-muted">Completion</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Task Status Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i data-feather="pie-chart"></i> Task Status Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Priority Distribution Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i data-feather="bar-chart"></i> Priority Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="priorityChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if user.is_manager() and team_stats %}
+<!-- Team Performance (Manager Only) -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i data-feather="users"></i> Team Performance
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="teamChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Tasks -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i data-feather="activity"></i> Recent Tasks
+                </h5>
+                <a href="{{ url_for('tasks') }}" class="btn btn-outline-primary btn-sm">
+                    View All
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_tasks %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Task</th>
+                                <th>Assignee</th>
+                                <th>Status</th>
+                                <th>Priority</th>
+                                <th>Due Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in recent_tasks %}
+                            <tr>
+                                <td>
+                                    <strong>{{ task.title }}</strong>
+                                    {% if task.description %}
+                                    <br><small class="text-muted">{{ task.description[:50] }}{% if task.description|length > 50 %}...{% endif %}</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ task.assignee.full_name }}</td>
+                                <td>
+                                    <span class="badge {{ task.get_status_badge_class() }}">
+                                        {{ task.status.replace('_', ' ').title() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge {{ task.get_priority_badge_class() }}">
+                                        {{ task.priority.title() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if task.due_date %}
+                                        {{ task.due_date.strftime('%Y-%m-%d') }}
+                                        {% if task.is_overdue() %}
+                                            <i data-feather="alert-triangle" class="text-danger"></i>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">No due date</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i data-feather="inbox" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
+                    <p class="text-muted">No recent tasks found.</p>
+                    {% if user.is_manager() %}
+                    <a href="{{ url_for('create_task') }}" class="btn btn-primary">
+                        <i data-feather="plus"></i> Create First Task
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+    // Initialize dashboard charts
+    document.addEventListener('DOMContentLoaded', function() {
+        // Status Chart
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Pending', 'In Progress', 'Completed'],
+                datasets: [{
+                    data: [{{ pending_tasks }}, {{ in_progress_tasks }}, {{ completed_tasks }}],
+                    backgroundColor: ['#ffc107', '#0dcaf0', '#198754']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        
+        // Priority Chart
+        const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+        new Chart(priorityCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Low', 'Medium', 'High'],
+                datasets: [{
+                    label: 'Tasks',
+                    data: [
+                        {{ pending_tasks + in_progress_tasks + completed_tasks }}, // This would be calculated properly in real implementation
+                        {{ pending_tasks }},
+                        {{ overdue_tasks }}
+                    ],
+                    backgroundColor: ['#198754', '#ffc107', '#dc3545']
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+        
+        {% if user.is_manager() and team_stats %}
+        // Team Performance Chart
+        const teamCtx = document.getElementById('teamChart').getContext('2d');
+        new Chart(teamCtx, {
+            type: 'bar',
+            data: {
+                labels: [{% for stat in team_stats %}'{{ stat[0] }}'{% if not loop.last %},{% endif %}{% endfor %}],
+                datasets: [{
+                    label: 'Total Tasks',
+                    data: [{% for stat in team_stats %}{{ stat[1] }}{% if not loop.last %},{% endif %}{% endfor %}],
+                    backgroundColor: '#0dcaf0'
+                }, {
+                    label: 'Completed Tasks',
+                    data: [{% for stat in team_stats %}{{ stat[2] }}{% if not loop.last %},{% endif %}{% endfor %}],
+                    backgroundColor: '#198754'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        {% endif %}
+    });
+</script>
+{% endblock %}

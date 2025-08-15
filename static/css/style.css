@@ -1,0 +1,285 @@
+/* Custom styles for Task Tracker */
+
+/* General Layout */
+body {
+    background-color: var(--bs-dark);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.navbar {
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.navbar-brand {
+    font-weight: 600;
+}
+
+/* Cards and Components */
+.card {
+    border: 1px solid var(--bs-border-color);
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.15s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    border-bottom: 1px solid var(--bs-border-color);
+    background-color: var(--bs-secondary-bg);
+}
+
+/* Statistics Cards */
+.card-title {
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.card .feather {
+    width: 24px;
+    height: 24px;
+}
+
+/* Tables */
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    border-bottom: 2px solid var(--bs-border-color);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+}
+
+.table td {
+    vertical-align: middle;
+    border-top: 1px solid var(--bs-border-color);
+}
+
+.table-hover tbody tr:hover {
+    background-color: var(--bs-secondary-bg);
+}
+
+/* Badges */
+.badge {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+/* Buttons */
+.btn {
+    font-weight: 500;
+    border-radius: 0.375rem;
+    transition: all 0.15s ease-in-out;
+}
+
+.btn .feather {
+    width: 16px;
+    height: 16px;
+    margin-right: 0.25rem;
+}
+
+.btn-group-sm .btn .feather {
+    width: 14px;
+    height: 14px;
+    margin-right: 0;
+}
+
+/* Forms */
+.form-control, .form-select {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.375rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+/* Alerts */
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+.alert .feather {
+    width: 16px;
+    height: 16px;
+    margin-right: 0.5rem;
+}
+
+/* Progress bars */
+.progress {
+    height: 8px;
+    border-radius: 4px;
+    background-color: var(--bs-secondary-bg);
+}
+
+.progress-bar {
+    background-color: var(--bs-primary);
+    border-radius: 4px;
+}
+
+/* Charts */
+canvas {
+    max-height: 400px;
+}
+
+/* Custom utilities */
+.text-muted {
+    color: var(--bs-secondary-color) !important;
+}
+
+/* Status and priority specific styles */
+.bg-pending {
+    background-color: #ffc107 !important;
+}
+
+.bg-in-progress {
+    background-color: #0dcaf0 !important;
+}
+
+.bg-completed {
+    background-color: #198754 !important;
+}
+
+.bg-low-priority {
+    background-color: #198754 !important;
+}
+
+.bg-medium-priority {
+    background-color: #ffc107 !important;
+}
+
+.bg-high-priority {
+    background-color: #dc3545 !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .card-title {
+        font-size: 1.5rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+/* Print styles */
+@media print {
+    .navbar,
+    .btn,
+    .alert-dismissible .btn-close {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+    
+    .table {
+        border: 1px solid #000 !important;
+    }
+    
+    .table th,
+    .table td {
+        border: 1px solid #000 !important;
+    }
+}
+
+/* Animation for auto-refresh indicator */
+.refresh-indicator {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.refresh-indicator.active {
+    opacity: 1;
+}
+
+/* Loading states */
+.loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(var(--bs-body-bg-rgb), 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+/* Empty state styling */
+.empty-state {
+    padding: 3rem 1rem;
+    text-align: center;
+}
+
+.empty-state .feather {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Task row highlighting */
+.table tbody tr.overdue {
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+.table tbody tr.due-soon {
+    background-color: rgba(255, 193, 7, 0.1);
+}
+
+/* Sidebar for mobile */
+@media (max-width: 991.98px) {
+    .navbar-collapse {
+        border-top: 1px solid var(--bs-border-color);
+        margin-top: 1rem;
+        padding-top: 1rem;
+    }
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bs-secondary-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bs-border-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--bs-secondary-color);
+}
